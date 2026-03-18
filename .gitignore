@@ -1,0 +1,57 @@
+# Binaries
+*.bin
+*.exe
+*.exe~
+*.dll
+*.lib
+*.so
+*.dylib
+/bin/
+
+# Linting
+golangci-lint*
+gosec*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+ehthumbs.db
+Icon?
+Thumbs.db
+*.swp
+*.swo
+
+# Go
+vendor/
+
+# Secrets and environment
+.env
+*.key
+*.env
+*.crt
+*.pem
+*.p12
+*.gpg
+*.secret
+secrets/
+
+# Transient
+*.out
+*.tmp
+*.test
+*.log
+tmp/
+out/
+log/
+
+# Data
+*.db
+
+# Backup files (sequences)
+*.bk??
+
+# Build files
+RULES.md
+GEMINI.md
+CLAUDE.md
+JULES.md
