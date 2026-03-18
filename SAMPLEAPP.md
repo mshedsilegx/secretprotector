@@ -61,10 +61,12 @@ func main() {
 
 	// 2. Resolve Master Key
 	// Priority: Flag (if any) > Environment Variable > File Path from config
+	// Note: 'masterKey' is a []byte returned by ResolveKey.
 	masterKey, err := libsecsecrets.ResolveKey(ctx, "", "SECRETPROTECTOR_MASTER_KEY", cfg.MasterKeyPath)
 	if err != nil {
 		log.Fatalf("Security failure: %v", err)
 	}
+	// Immediately defer zeroing the buffer to ensure it's cleared on exit.
 	defer libsecsecrets.ZeroBuffer(masterKey)
 
 	// 3. Decrypt Secret at Runtime
@@ -103,7 +105,7 @@ func performSecureOperation(host, user, pass string) {
 
 ## 4. Security Best Practices
 
-*   **Memory Hygiene:** Never print the decrypted `realPass` to `stdout` or logs. Always use `defer libsecsecrets.ZeroBuffer(masterKey)` to clear sensitive keys from memory as soon as they are no longer needed.
+*   **Memory Hygiene:** Never print the decrypted `realPass` to `stdout` or logs. Always use `defer libsecsecrets.ZeroBuffer(masterKey)` to clear sensitive keys from memory as soon as they are resolved. Note that `libsecsecrets` uses `sync.Pool` internally for efficient buffer management during key generation, but manual zeroing of resolved keys remains a critical responsibility of the consumer application.
 *   **Context Support:** Use `context.Context` for all library calls to support timeouts and cancellations in production environments.
 *   **Fail Fast:** If the master key cannot be resolved or decryption fails, the application **must** terminate immediately.
 *   **Key Protection:** On Linux, ensure the key file has `0400` permissions. On Windows, store the key in a restricted user directory.
