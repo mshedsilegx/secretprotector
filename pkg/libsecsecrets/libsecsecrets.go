@@ -11,6 +11,12 @@
 // 2. Cryptography: AES-256-GCM providing confidentiality and integrity.
 // 3. Memory Safety: Utilities for zeroing sensitive buffers to minimize exposure.
 // 4. Resource Optimization: sync.Pool for efficient buffer management.
+//
+// Data Flow:
+// 1. Key Generation: CSPRNG -> 32-byte slice -> Hex String.
+// 2. Key Resolution: Input (Raw/Env/File) -> Validation -> 32-byte key.
+// 3. Encryption: Plaintext + Key -> AES-GCM (Nonce + Seal) -> Base64 String.
+// 4. Decryption: Base64 String + Key -> Base64 Decode -> AES-GCM (Open) -> Plaintext.
 package libsecsecrets
 
 import (
@@ -53,6 +59,7 @@ var (
 )
 
 // ZeroBuffer fills the provided byte slice with zeros to clear sensitive data from memory.
+// This is used to minimize the window of exposure for sensitive material in RAM.
 func ZeroBuffer(b []byte) {
 	for i := range b {
 		b[i] = 0

@@ -18,7 +18,7 @@ The `secretprotector` CLI utility provides the following flags:
 | `-generate` | bool | `false` | Generate a new 32-byte Master Key (64-char hex string). |
 | `-encrypt` | string | `""` | The plaintext string to obfuscate. |
 | `-decrypt` | string | `""` | The Base64-encoded ciphertext to decrypt. |
-| `-key` | string | `""` | Provide the Master Key directly as a 64-character hex string. |
+| `-key` | string | `""` | Provide the Master Key directly (64-char hex or 32-byte raw). |
 | `-key-env` | string | `SECRETPROTECTOR_MASTER_KEY` | The name of the environment variable containing the Master Key. |
 | `-key-file` | string | `""` | The fully qualified path to a file containing the Master Key. |
 

@@ -47,7 +47,7 @@ The test suite is designed for **high-impact instrumentation** and **comprehensi
 The test suite simulates real-world failure modes:
 *   **Entropy Exhaustion:** Mocks `RandReader` with an empty reader to simulate CSPRNG failures.
 *   **File System Errors:** Mocks `OsStat` and `OsReadFile` to simulate permission denied or file not found errors.
-*   **OS Environment:** Mocks `RuntimeGOOS` to simulate Windows vs. Linux security logic (e.g., checking for `C:\Users\Public` vs. Unix file modes).
+*   **OS Environment:** Mocks `RuntimeGOOS` to simulate Windows vs. Linux security logic (e.g., checking for `C:\Users\Public` vs. Unix file modes `0400`/`0600`).
 
 ## 6. How to Run the Tests
 

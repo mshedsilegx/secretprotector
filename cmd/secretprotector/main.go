@@ -11,6 +11,13 @@
 // - Encrypt plaintext strings using AES-256-GCM.
 // - Decrypt Base64-encoded ciphertexts back to plaintext.
 // - Support for multiple key sources (Flag, Environment, File) with strict security boundaries.
+//
+// Data Flow:
+// 1. CLI Entry: Parse flags to determine operation (generate, encrypt, decrypt).
+// 2. Key Acquisition: Call libsecsecrets.ResolveKey with flag-provided sources.
+// 3. Transformation: Call appropriate libsecsecrets function based on operation.
+// 4. Output: Write result to standard output or error to standard error.
+// 5. Cleanup: Securely zero out key buffers (when possible) before termination.
 package main
 
 import (

@@ -51,6 +51,7 @@ log/
 *.bk??
 
 # Build files
+.windsurf
 RULES.md
 GEMINI.md
 CLAUDE.md

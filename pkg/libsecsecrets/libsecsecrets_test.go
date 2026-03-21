@@ -3,11 +3,26 @@
 // and performance optimizations like sync.Pool reuse.
 //
 // Test Strategy:
-//  1. Cryptography: Verify round-trip (Encrypt/Decrypt) matches plaintext.
-//  2. Key Resolution: Mock OS/Env/Filesystem to verify hierarchical precedence (Flag > Env > File).
-//  3. Security: Mock platform-specific file attributes to ensure 0400/0600 enforcement on Linux
-//     and location-based safety on Windows.
-//  4. Memory Safety: Verify sensitive data handling and error conditions.
+// 1. Cryptographic Correctness:
+//   - Round-trip (Encrypt/Decrypt) verification to ensure data integrity and confidentiality.
+//   - Validation of random key generation using CSPRNG.
+//
+// 2. Key Resolution Hierarchy:
+//   - Mocks for OS Environment and Filesystem to verify precedence: CLI Flag > Environment Variable > File.
+//   - Verification of fallback mechanisms when higher-priority sources are absent or empty.
+//
+// 3. Platform Security Enforcement:
+//   - Linux/Unix: Mocking file attributes to enforce 0400/0600 permission requirements.
+//   - Windows: Path-based validation to block insecure locations (Public, Temp).
+//
+// 4. Error Resilience and Edge Cases:
+//   - Testing failure modes for key generation (e.g., entropy exhaustion).
+//   - Handling of malformed keys (invalid hex, incorrect length).
+//   - Decryption failures (tampered ciphertext, incorrect keys).
+//
+// 5. Memory Safety and Resource Management:
+//   - Verification of sync.Pool for buffer reuse to minimize GC overhead.
+//   - Implicit verification of ZeroBuffer usage via logic flows.
 package libsecsecrets
 
 import (

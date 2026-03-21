@@ -15,7 +15,7 @@ The library is the single source of truth for cryptographic operations.
 | Function | Input | Output | Purpose |
 | :--- | :--- | :--- | :--- |
 | `GenerateKey()` | None | `(string, error)` | Returns a 64-char hex string (32 bytes of entropy). Uses `sync.Pool` for efficiency. |
-| `ResolveKey(ctx, raw, env, file)` | `Context`, Strings | `([]byte, error)` | Finds and validates the key from 3 sources: CLI flag, environment variable, or file path. Enforces platform security. |
+| `ResolveKey(ctx, raw, env, file)` | `Context`, Strings | `([]byte, error)` | Finds and validates the key from 3 sources: CLI flag, environment variable, or file path. Supports 64-char hex or 32-byte raw. Enforces platform security. |
 | `Encrypt(ctx, plain, key)` | `Context, string, []byte` | `(string, error)` | Returns a Base64 string containing `nonce + ciphertext`. |
 | `Decrypt(ctx, base64, key)` | `Context, string, []byte` | `(string, error)` | Extracts nonce, decrypts, and returns plaintext. |
 | `ZeroBuffer(b)` | `[]byte` | None | Securely clears sensitive data from memory. |

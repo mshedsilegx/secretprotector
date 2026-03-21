@@ -3,10 +3,22 @@
 // and ensuring the end-to-end flow from flags to library execution is correct.
 //
 // Test Strategy:
-// 1. CLI Flags: Verify -version, -generate, and usage information.
-// 2. Integration: Verify encryption/decryption round-trip using CLI flags.
-// 3. Key Sources: Verify resolution from CLI flags, Environment Variables, and Files.
-// 4. Error Handling: Verify that invalid inputs and security violations result in appropriate exit codes.
+// 1. CLI Execution Model:
+//   - Mocks os.Args and redirects os.Stdout/os.Stderr to capture and verify CLI output.
+//   - Uses a custom FlagSet for each test to ensure isolation between test runs.
+//
+// 2. Functional Verification:
+//   - Versioning: Ensures the -version flag correctly reports the build version.
+//   - Key Generation: Validates that -generate produces a valid 64-character hex string.
+//   - Integration: Performs end-to-end encryption and decryption via CLI flags.
+//
+// 3. Key Source Resolution:
+//   - Verifies that keys can be provided via CLI flags, Environment Variables, and Files.
+//   - Ensures the CLI correctly delegates resolution to the underlying library.
+//
+// 4. Error Resilience:
+//   - Tests common failure modes: missing keys, invalid key formats, and malformed ciphertexts.
+//   - Verifies that library errors (e.g., CSPRNG failure) are correctly bubbled up to the CLI.
 package main
 
 import (

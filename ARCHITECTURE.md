@@ -1,6 +1,6 @@
 # Architecture & Design: SecretProtector
 
-This document outlines the architectural decisions, design patterns, and dependencies for the SecretProtector system.
+This document outlines the architectural decisions, design patterns,  data flow, control logic and dependencies for the SecretProtector system.
 
 ## 1. System Overview
 
@@ -43,13 +43,13 @@ secretprotector
 
 ### 2.3 Key Resolution Strategy
 The system implements a hierarchical precedence model for Master Key resolution:
-1.  **Direct Input (Flag):** Highest priority for temporary overrides or testing.
-2.  **Environment Variable:** Standard for CI/CD pipelines and containerized environments.
-3.  **File Path:** Standard for on-premise deployments or hardware-backed secrets.
+1.  **Direct Input (Flag):** Highest priority for temporary overrides or testing. Supports 64-character hex or 32-byte raw strings.
+2.  **Environment Variable:** Standard for CI/CD pipelines and containerized environments. Supports 64-character hex or 32-byte raw strings.
+3.  **File Path:** Standard for on-premise deployments or hardware-backed secrets. Supports 64-character hex or 32-byte raw strings.
 
 ### 2.4 Platform Security Boundaries
 - **Linux/Unix:** Enforces `0400` (Read-Only Owner) or `0600` (Read-Write Owner) permissions on key files to prevent unauthorized local access.
-- **Windows:** Implements "Insecure Location" detection, preventing the use of master keys stored in shared or volatile directories like `Public` or `Temp`.
+- **Windows:** Implements "Insecure Location" detection, preventing the use of master keys stored in shared or volatile directories like `Public` or `\temp\`.
 
 ### 2.5 Resource Management & Performance
 - **Sync Pool Optimization:** The library utilizes `sync.Pool` for managing sensitive byte slices (e.g., during key generation). This reduces garbage collection (GC) overhead and ensures that buffers are securely zeroed before being returned to the pool.
