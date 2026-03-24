@@ -1,6 +1,6 @@
 # SecretProtector
 
-SecretProtector is a professional-grade password obfuscation system for Go. It ensures that sensitive credentials (such as SFTP passwords, API keys, or database strings) are never stored in plaintext on disk or in version control by using AES-256-GCM authenticated encryption and a multi-source master key resolution strategy.
+SecretProtector is a password obfuscation system for Go. It ensures that sensitive credentials (such as SFTP passwords, API keys, or database strings) are never stored in plaintext on disk or in version control by using AES-256-GCM authenticated encryption and a multi-source master key resolution strategy.
 
 ## Objectives
 - **Zero Plaintext Storage:** Eliminate plaintext secrets from configuration files and environment variables.
@@ -21,6 +21,12 @@ The `secretprotector` CLI utility provides the following flags:
 | `-key` | string | `""` | Provide the Master Key directly (64-char hex or 32-byte raw). |
 | `-key-env` | string | `SECRETPROTECTOR_MASTER_KEY` | The name of the environment variable containing the Master Key. |
 | `-key-file` | string | `""` | The fully qualified path to a file containing the Master Key. |
+
+**Key Resolution Precedence:**
+If multiple key sources are provided, the application resolves them in the following order:
+1. **Direct Key (`-key`)**: Highest precedence.
+2. **Environment Variable (`-key-env`)**: Used if `-key` is not provided.
+3. **Key File (`-key-file`)**: Lowest precedence; used only if no key is found in the other sources.
 
 ## CLI Usage Examples
 
@@ -50,6 +56,8 @@ go run ./cmd/secretprotector -key "YOUR_HEX_KEY" -encrypt "your_secret_here"
 
 ### 4. Obfuscate a Secret (Environment Variable)
 The most common way to use the CLI in a dev environment.
+
+**Windows Note:** The master key environment variable can be stored in either the **USER** or **SYSTEM** scope. The application retrieves the value from the process environment block, where User variables take precedence over System variables.
 ```powershell
 # Set the environment variable
 $env:SECRETPROTECTOR_MASTER_KEY = "YOUR_HEX_KEY"
