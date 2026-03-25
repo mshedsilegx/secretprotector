@@ -32,6 +32,8 @@ If multiple key sources are provided, the application resolves them in the follo
 
 ### 1. Building from Source
 Build the application with optimized settings for security and size.
+
+**Windows (PowerShell):**
 ```powershell
 # Get the version from version.txt
 $version = Get-Content version.txt -Raw
@@ -40,37 +42,96 @@ $version = Get-Content version.txt -Raw
 go build -buildvcs=false -ldflags "-s -w -X main.version=$version -trimpath" -buildmode=pie -o $env:TEMP/ ./cmd/secretprotector
 ```
 
+**Linux/Unix (Bash):**
+```bash
+# Get the version from version.txt and build the application
+go build -buildvcs=false -ldflags "-s -w -X main.version=$(cat version.txt) -trimpath" -buildmode=pie -o ./secretprotector ./cmd/secretprotector
+```
+
 ### 2. Initial Setup: Generate a Master Key
 Generate a new secure key for your environment.
+
+**Windows (PowerShell) or Linux/Unix (Bash):**
 ```powershell
 go run ./cmd/secretprotector -generate
 # Output: 4f7e2d... (64 character hex string)
 ```
 
-### 3. Obfuscate a Secret (Direct Key)
-Encrypt a secret (e.g., an SFTP password) by providing the key directly on the command line.
+### 3. Obfuscate a Secret (Direct Key: `-key`)
+Encrypt a secret (e.g., an SFTP password) by providing the key directly on the command line. This is useful for testing or one-off operations but is less secure than other methods because the key may be visible in process listings or shell history.
+
+**Windows (PowerShell) or Linux/Unix (Bash):**
 ```powershell
-go run ./cmd/secretprotector -key "YOUR_HEX_KEY" -encrypt "your_secret_here"
-# Output: Base64 string (nonce + ciphertext)
+# Use a 64-character hex string as the key - Output: Base64 string (nonce + ciphertext)
+go run ./cmd/secretprotector -key "4f7e2d9a3b1c...64chars" -encrypt "your_secret_here"
+
+# The -key flag also supports a 32-character raw string (less common)
+go run ./cmd/secretprotector -key "a_32_character_long_secret_str!!" -encrypt "your_secret_here"
 ```
 
-### 4. Obfuscate a Secret (Environment Variable)
-The most common way to use the CLI in a dev environment.
+### 4. Obfuscate a Secret (Environment Variable: `-key-env`)
+The recommended way for automated environments. By default, it looks for `SECRETPROTECTOR_MASTER_KEY`.
 
-**Windows Note:** The master key environment variable can be stored in either the **USER** or **SYSTEM** scope. The application retrieves the value from the process environment block, where User variables take precedence over System variables.
+**Windows Note:** The master key environment variable can be stored in either the **USER** or **SYSTEM** scope. The application retrieves the value from the process environment block, 
+where User variables take precedence over System variables.
+
+To ensure variables persist after a server reboot, use the `setx` command:
+- **User Scope:** `setx SECRETPROTECTOR_MASTER_KEY "your_hex_key"`
+- **System Scope:** `setx SECRETPROTECTOR_MASTER_KEY "your_hex_key" /M` (requires Administrative privileges)
+
+*Note: `setx` updates the registry; you must open a new terminal window for the changes to take effect in your current session.*
+
+#### 1. Set the environment variable (default name) with a 64-character hex string
+**Windows (PowerShell):**
 ```powershell
-# Set the environment variable
-$env:SECRETPROTECTOR_MASTER_KEY = "YOUR_HEX_KEY"
+# Set for current session only
+$env:SECRETPROTECTOR_MASTER_KEY = "4f7e2d9a3b1c...64chars"
+$env:MY_APP_KEY = "4f7e2d9a3b1c...64chars"
 
-# Encrypt without passing the key flag
+# Set permanently (User scope)
+setx SECRETPROTECTOR_MASTER_KEY "4f7e2d9a3b1c...64chars"
+
+# Set permanently (System scope - Run as Admin)
+setx SECRETPROTECTOR_MASTER_KEY "4f7e2d9a3b1c...64chars" /M
+```
+
+**Linux/Unix (Bash):**
+```bash
+# Set for current session
+export SECRETPROTECTOR_MASTER_KEY="4f7e2d9a3b1c...64chars"
+export MY_APP_KEY="4f7e2d9a3b1c...64chars"
+
+# To set permanently, add the above lines to your ~/.bashrc or ~/.profile
+```
+
+#### 2. Encrypt using the default environment variable or a custom environment variable name
+```powershell
+# Using default (SECRETPROTECTOR_MASTER_KEY)
 go run ./cmd/secretprotector -encrypt "your_secret_here"
+
+# Using custom environment variable
+go run ./cmd/secretprotector -key-env "MY_APP_KEY" -encrypt "your_secret_here"
 ```
 
-### 5. Decrypt a Secret (Key File)
-Useful for verifying secrets on a production server where the key is stored in a protected file.
+### 5. Decrypt a Secret (Key File: `-key-file`)
+The most secure way to manage keys on a server. The file must have restricted permissions.
+
+**Security Requirements:**
+- **Windows:** Files cannot be in "Public" or "Temp" directories.
+- **Linux/Unix:** Files must have owner-only permissions (e.g., `0400` or `0600`).
+
+**Windows (PowerShell):**
 ```powershell
-# Linux example (assuming /etc/secrets/key.txt has 0400 permissions)
-./secretprotector -key-file "/etc/secrets/key.txt" -decrypt "A1B2C3D4..."
+go run ./cmd/secretprotector -key-file "C:\Users\Admin\Documents\master.key" -decrypt "A1B2C3D4..."
+```
+
+**Linux/Unix (Bash):**
+```bash
+# Ensure secure permissions first
+chmod 0400 /etc/secrets/master.key
+
+# Use the absolute path to the key file
+go run ./cmd/secretprotector -key-file "/etc/secrets/master.key" -decrypt "A1B2C3D4..."
 ```
 
 ## Library Integration
