@@ -81,7 +81,7 @@ To ensure variables persist after a server reboot, use the `setx` command:
 
 *Note: `setx` updates the registry; you must open a new terminal window for the changes to take effect in your current session.*
 
-#### 1. Set the environment variable (default name) with a 64-character hex string
+#### 4.1 Set the environment variable (default name) with a 64-character hex string
 **Windows (PowerShell):**
 ```powershell
 # Set for current session only
@@ -90,9 +90,11 @@ $env:MY_APP_KEY = "4f7e2d9a3b1c...64chars"
 
 # Set permanently (User scope)
 setx SECRETPROTECTOR_MASTER_KEY "4f7e2d9a3b1c...64chars"
+setx MY_APP_KEY "4f7e2d9a3b1c...64chars"
 
 # Set permanently (System scope - Run as Admin)
 setx SECRETPROTECTOR_MASTER_KEY "4f7e2d9a3b1c...64chars" /M
+setx MY_APP_KEY "4f7e2d9a3b1c...64chars" /M
 ```
 
 **Linux/Unix (Bash):**
@@ -104,7 +106,7 @@ export MY_APP_KEY="4f7e2d9a3b1c...64chars"
 # To set permanently, add the above lines to your ~/.bashrc or ~/.profile
 ```
 
-#### 2. Encrypt using the default environment variable or a custom environment variable name
+#### 4.2 Encrypt using the default environment variable or a custom environment variable name
 ```powershell
 # Using default (SECRETPROTECTOR_MASTER_KEY)
 go run ./cmd/secretprotector -encrypt "your_secret_here"
@@ -113,13 +115,52 @@ go run ./cmd/secretprotector -encrypt "your_secret_here"
 go run ./cmd/secretprotector -key-env "MY_APP_KEY" -encrypt "your_secret_here"
 ```
 
-### 5. Decrypt a Secret (Key File: `-key-file`)
-The most secure way to manage keys on a server. The file must have restricted permissions.
+### 5. Obfuscate a Secret (Key File: `-key-file`)
+The most secure way to manage keys. The file must have restricted permissions. 
+
+**Important:** You **must** use absolute paths for the `-key-file` flag. Relative paths are disallowed to prevent path traversal attacks and ensure the application always references the intended secure location.
 
 **Security Requirements:**
 - **Windows:** Files cannot be in "Public" or "Temp" directories.
 - **Linux/Unix:** Files must have owner-only permissions (e.g., `0400` or `0600`).
 
+**Windows (PowerShell):**
+```powershell
+# Encrypt using a key stored in a file
+go run ./cmd/secretprotector -key-file "C:\Users\Admin\Documents\master.key" -encrypt "your_secret_here"
+```
+
+**Linux/Unix (Bash):**
+```bash
+# Ensure secure permissions first
+chmod 0400 /etc/secrets/master.key
+
+# Encrypt using the key file
+go run ./cmd/secretprotector -key-file "/etc/secrets/master.key" -encrypt "your_secret_here"
+```
+
+### 6. Decrypt a Secret
+Decryption requires the same master key used for encryption. Examples are shown by key source.
+
+#### 6.1 Direct Key (`-key`)
+**Windows (PowerShell) or Linux/Unix (Bash):**
+```bash
+go run ./cmd/secretprotector -key "4f7e2d9a3b1c...64chars" -decrypt "A1B2C3D4..."
+```
+
+#### 6.2 Environment Variable (`-key-env`)
+Refer to [Section 4.1](#41-set-the-environment-variable-default-name-with-a-64-character-hex-string) for instructions on how to set these variables for Windows and Linux.
+
+**Windows (PowerShell) or Linux/Unix (Bash):**
+```bash
+# Using the default environment variable (SECRETPROTECTOR_MASTER_KEY)
+go run ./cmd/secretprotector -decrypt "A1B2C3D4..."
+
+# Using a custom environment variable name
+go run ./cmd/secretprotector -key-env "MY_APP_KEY" -decrypt "A1B2C3D4..."
+```
+
+#### 6.3 Key File (`-key-file`)
 **Windows (PowerShell):**
 ```powershell
 go run ./cmd/secretprotector -key-file "C:\Users\Admin\Documents\master.key" -decrypt "A1B2C3D4..."
@@ -130,7 +171,6 @@ go run ./cmd/secretprotector -key-file "C:\Users\Admin\Documents\master.key" -de
 # Ensure secure permissions first
 chmod 0400 /etc/secrets/master.key
 
-# Use the absolute path to the key file
 go run ./cmd/secretprotector -key-file "/etc/secrets/master.key" -decrypt "A1B2C3D4..."
 ```
 
